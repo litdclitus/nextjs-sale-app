@@ -3,10 +3,5 @@ export default function LoginLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <main>
-      <header>Auth Layout</header>
-      {children}
-    </main>
-  );
+  return <main>{children}</main>;
 }
