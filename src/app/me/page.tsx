@@ -1,9 +1,11 @@
 import envConfig from "@/config";
+import Profile from "./profile";
 import { cookies } from "next/headers";
 
 export default async function MeProfile() {
   const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("sessionToken");
+  const sessionToken = cookieStore.get("sessionToken")?.value;
+  console.log(sessionToken);
 
   const response = await fetch(
     `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/account/me`,
@@ -11,7 +13,7 @@ export default async function MeProfile() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionToken?.value}`,
+        Authorization: `Bearer ${sessionToken}`,
       },
     }
   );
@@ -21,6 +23,7 @@ export default async function MeProfile() {
     status: response.status,
     payload,
   };
+  console.log(data);
 
   if (!response.ok) {
     throw data;
@@ -28,7 +31,7 @@ export default async function MeProfile() {
 
   return (
     <div>
-      <h1>Hi {payload.data.name}!</h1>
+      <Profile data={data} />
     </div>
   );
 }
