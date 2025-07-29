@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAppContext } from "../AppProvider";
+import { AccountResType } from "@api/schemaValidations/account.schema";
 
 type ProfileData = {
   id: number;
@@ -10,26 +10,19 @@ type ProfileData = {
 };
 
 type ProfileProps = {
-  data: {
-    status: number;
-    payload: {
-      data: ProfileData;
-    };
-  };
+  data: AccountResType;
 };
 
 const Profile = ({ data }: ProfileProps) => {
-  const [profile, setProfile] = useState<ProfileData>(data.payload.data);
-  const { sessionToken } = useAppContext();
-  console.log(sessionToken);
+  const [profile, setProfile] = useState<ProfileData>(data.data);
 
   useEffect(() => {
-    setProfile(data.payload.data);
+    setProfile(data.data);
   }, [data]);
   return (
     <div>
       <h1>Profile</h1>
-      <p>Hi {profile.name}</p>
+      <p>Hello {profile.name}</p>
     </div>
   );
 };
