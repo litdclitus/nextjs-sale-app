@@ -1,7 +1,11 @@
 import { ModeToggle } from "./mode-toggle";
 import Link from "next/link";
+import { cookies } from "next/headers";
 
-export default function Header() {
+export default async function Header() {
+  const sessionToken = (await cookies()).get("sessionToken")?.value;
+  const isAuth = sessionToken ? true : false;
+
   return (
     <header className="p-4">
       <div className="flex justify-end">
@@ -9,12 +13,20 @@ export default function Header() {
           <li>
             <Link href="/">Home</Link>
           </li>
-          <li>
-            <Link href="/login">Login</Link>
-          </li>
-          <li>
-            <Link href="/register">Register</Link>
-          </li>
+          {isAuth ? (
+            <li>
+              <Link href="/me">Profile</Link>
+            </li>
+          ) : (
+            <>
+              <li>
+                <Link href="/login">Login</Link>
+              </li>
+              <li>
+                <Link href="/register">Register</Link>
+              </li>
+            </>
+          )}
           <li className="flex items-center">
             <ModeToggle />
           </li>

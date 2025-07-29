@@ -15,8 +15,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAppContext } from "@/app/AppProvider";
 
 const LoginForm = () => {
+  const { setSessionToken } = useAppContext();
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
     defaultValues: {
@@ -52,7 +54,16 @@ const LoginForm = () => {
       toast.success(payload.message, {
         position: "top-left",
       });
-      // console.log("Login response:", data);
+
+      const resultFromNextServer = await fetch("/api/auth", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const resultPayload = await resultFromNextServer.json();
+
+      // console.log("resultFromNextServer:", resultPayload);
+
+      setSessionToken(resultPayload.res.data.token);
 
       // TODO: Handle successful login (redirect, store token, etc.)
     } catch (error: unknown) {
