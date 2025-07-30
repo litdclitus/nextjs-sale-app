@@ -1,9 +1,11 @@
+"use client";
+
 import { ModeToggle } from "./mode-toggle";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { useAppContext } from "@/app/AppProvider";
 
-export default async function Header() {
-  const sessionToken = (await cookies()).get("sessionToken")?.value;
+export default function Header() {
+  const { sessionToken } = useAppContext();
   const isAuth = sessionToken ? true : false;
 
   return (

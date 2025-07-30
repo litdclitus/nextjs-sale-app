@@ -1,7 +1,7 @@
 
 export async function POST(request: Request) {
     const res = await request.json();
-    const sessionToken = res.data.token;
+    const sessionToken = res.sessionToken as string;
     if (!sessionToken) {
         return Response.json({error: "Session token not found"}, {status: 401});
     }

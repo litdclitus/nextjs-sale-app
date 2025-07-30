@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { LoginBody, LoginBodyType } from "@api/schemaValidations/auth.schema";
-import envConfig from "@/config";
 import {
   Form,
   FormControl,
@@ -16,8 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAppContext } from "@/app/AppProvider";
+import authApiRequest from "@/apiRequests/auth";
+import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
+  const router = useRouter();
   const { setSessionToken } = useAppContext();
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
@@ -29,43 +31,16 @@ const LoginForm = () => {
 
   async function onSubmit(values: LoginBodyType) {
     try {
-      const response = await fetch(
-        `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/login`,
-        {
-          method: "POST",
-          body: JSON.stringify(values),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await authApiRequest.login(values);
 
-      const payload = await response.json();
-      const data = {
-        status: response.status,
-        payload,
-      };
-
-      if (!response.ok) {
-        // toast.error(payload.message || "Login failed");
-        throw data;
-      }
-
-      toast.success(payload.message, {
+      toast.success(response.message, {
         position: "top-left",
       });
 
-      const resultFromNextServer = await fetch("/api/auth", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      const resultPayload = await resultFromNextServer.json();
+      await authApiRequest.auth({ sessionToken: response.data.token });
 
-      // console.log("resultFromNextServer:", resultPayload);
-
-      setSessionToken(resultPayload.res.data.token);
-
-      // TODO: Handle successful login (redirect, store token, etc.)
+      setSessionToken(response.data.token);
+      router.push("/me");
     } catch (error: unknown) {
       console.log("error:", error);
       const status = (error as { status: number }).status;

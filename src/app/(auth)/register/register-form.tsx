@@ -17,10 +17,12 @@ import {
   RegisterBody,
   RegisterBodyType,
 } from "@api/schemaValidations/auth.schema";
-import envConfig from "@/config";
 import { toast } from "sonner";
+import authApiRequest from "@/apiRequests/auth";
+import { useRouter } from "next/navigation";
 
 const RegisterForm = () => {
+  const router = useRouter();
   const form = useForm<RegisterBodyType>({
     resolver: zodResolver(RegisterBody),
     defaultValues: {
@@ -33,30 +35,13 @@ const RegisterForm = () => {
 
   async function onSubmit(values: RegisterBodyType) {
     try {
-      const response = await fetch(
-        `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/auth/register`,
-        {
-          method: "POST",
-          body: JSON.stringify(values),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await authApiRequest.register(values);
 
-      const payload = await response.json();
-      const data = {
-        status: response.status,
-        payload,
-      };
-
-      if (!response.ok) {
-        throw data;
-      }
-
-      toast.success(payload.message, {
+      toast.success(response.message, {
         position: "top-left",
       });
+
+      router.push("/login");
     } catch (error: unknown) {
       const errorData = error as {
         status: number;
