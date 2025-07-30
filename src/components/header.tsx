@@ -47,9 +47,9 @@ export default function Header() {
                 <Link href="/me">Profile</Link>
               </li>
               <li>
-                <Link href="/login" onClick={handleLogout}>
+                <Button className="cursor-pointer" variant="destructive" onClick={handleLogout}>
                   Logout
-                </Link>
+                </Button>
               </li>
             </>
           ) : (

@@ -30,21 +30,21 @@ export default function AuthTest() {
 
       {/* current state */}
       <div className="mb-4">
-        <p>
-          Token: <span className="font-mono">{sessionToken || "Chưa có"}</span>
-        </p>
-        <p>
-          Trạng thái:{" "}
+        <div className="break-all mb-2">
+          <span className="font-bold">Token: </span><span className="font-mono">{sessionToken || "Chưa có"}</span>
+        </div>
+        <div className="mb-2">
+          <span className="font-bold">Trạng thái: </span>
           <span className={isAuthenticated ? "text-green-600" : "text-red-600"}>
             {isAuthenticated ? "✅ Đã đăng nhập" : "❌ Chưa đăng nhập"}
           </span>
-        </p>
-        <p>
-          Hydrated:{" "}
+        </div>
+        <div>
+          <span className="font-bold">Hydrated: </span>
           <span className={isHydrated ? "text-green-600" : "text-orange-600"}>
             {isHydrated ? "✅ Đã sync" : "⏳ Chưa sync"}
           </span>
-        </p>
+        </div>
       </div>
 
       {/* buttons to test actions */}
