@@ -14,13 +14,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useAppContext } from "@/app/AppProvider";
+import { useAuth } from "@/hooks/useAuth";
 import authApiRequest from "@/apiRequests/auth";
 import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
   const router = useRouter();
-  const { setSessionToken } = useAppContext();
+  const { setSessionToken } = useAuth();
   const form = useForm<LoginBodyType>({
     resolver: zodResolver(LoginBody),
     defaultValues: {
