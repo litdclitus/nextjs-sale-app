@@ -2,23 +2,56 @@
 
 import { ModeToggle } from "./mode-toggle";
 import Link from "next/link";
-import { useAppContext } from "@/app/AppProvider";
+import { useAuth, useLogout } from "@/hooks/useAuth";
+import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
-  const { sessionToken } = useAppContext();
-  const isAuth = sessionToken ? true : false;
+  const { isAuthenticated, isHydrated } = useAuth();
+  const { logout } = useLogout();
+  const router = useRouter();
+
+  // 🔥 Logout handler
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      router.push("/login");
+    }
+  };
+
+  if (!isHydrated) {
+    return (
+      <header className="p-4">
+        <div className="flex justify-end">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-300 rounded w-20"></div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="p-4">
       <div className="flex justify-end">
-        <ul className="flex gap-4">
+        <ul className="flex gap-4 items-center">
           <li>
             <Link href="/">Home</Link>
           </li>
-          {isAuth ? (
-            <li>
-              <Link href="/me">Profile</Link>
-            </li>
+          {isAuthenticated ? (
+            <>
+              <li>
+                <Link href="/me">Profile</Link>
+              </li>
+              <li>
+                <Link href="/login" onClick={handleLogout}>
+                  Logout
+                </Link>
+              </li>
+            </>
           ) : (
             <>
               <li>

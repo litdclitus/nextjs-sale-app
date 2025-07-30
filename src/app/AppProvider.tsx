@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
+import { useAuthHydration } from "@/hooks/useAuth";
 
 const AppContext = createContext({
   sessionToken: "",
@@ -23,6 +24,8 @@ export default function AppProvider({
   initialSessionToken: string;
 }) {
   const [sessionToken, setSessionToken] = useState(initialSessionToken);
+  useAuthHydration(initialSessionToken);
+
   return (
     <AppContext.Provider value={{ sessionToken, setSessionToken }}>
       {children}
