@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import authApiRequest from "@/apiRequests/auth";
 import { useRouter } from "next/navigation";
+import { handleApiError } from "@/lib/utils";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -42,25 +43,10 @@ const LoginForm = () => {
       setSessionToken(response.data.token);
       router.push("/me");
     } catch (error: unknown) {
-      console.log("error:", error);
-      const status = (error as { status: number }).status;
-      const errors = (
-        error as {
-          payload: {
-            errors: { field: "email" | "password"; message: string }[];
-          };
-        }
-      ).payload.errors;
-      if (status === 422) {
-        for (const error of errors) {
-          // form.setError(error.field, {
-          //   message: error.message,
-          // });
-          toast.error(error.message, {
-            position: "top-left",
-          });
-        }
-      }
+      handleApiError(error, form, {
+        useFormErrors: false, // Use toast instead of form errors for login
+        toastPosition: "top-left",
+      });
     }
   }
 
