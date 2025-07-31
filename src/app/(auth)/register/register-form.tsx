@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import authApiRequest from "@/apiRequests/auth";
 import { useRouter } from "next/navigation";
+import { handleApiError } from "@/lib/utils";
 
 const RegisterForm = () => {
   const router = useRouter();
@@ -43,29 +44,11 @@ const RegisterForm = () => {
 
       router.push("/login");
     } catch (error: unknown) {
-      const errorData = error as {
-        status: number;
-        payload: {
-          message?: string;
-          errors?: {
-            field: "name" | "email" | "password" | "confirmPassword";
-            message: string;
-          }[];
-          statusCode?: number;
-        };
-      };
-
-      if (errorData.status === 422 && errorData.payload.errors) {
-        for (const errorItem of errorData.payload.errors) {
-          form.setError(errorItem.field, {
-            message: errorItem.message,
-          });
-        }
-      } else {
-        toast.error(errorData.payload.message || "An error occurred", {
-          position: "top-left",
-        });
-      }
+      handleApiError(error, form, {
+        useFormErrors: true,
+        toastPosition: "top-left",
+        fallbackMessage: "An error occurred during registration",
+      });
     }
   }
 
