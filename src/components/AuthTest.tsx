@@ -31,7 +31,8 @@ export default function AuthTest() {
       {/* current state */}
       <div className="mb-4">
         <div className="break-all mb-2">
-          <span className="font-bold">Token: </span><span className="font-mono">{sessionToken || "Chưa có"}</span>
+          <span className="font-bold">Token: </span>
+          <span className="font-mono">{sessionToken || "Chưa có"}</span>
         </div>
         <div className="mb-2">
           <span className="font-bold">Trạng thái: </span>
