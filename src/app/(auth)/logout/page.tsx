@@ -18,7 +18,18 @@ const LogoutPage = () => {
     }
   }, [searchParams, router, pathname]);
 
-  return <div>Logging out...</div>;
+  return (
+    <div>
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="flex flex-col items-center justify-center h-screen">
+          <h1 className="text-2xl font-bold">Logging out...</h1>
+          <p className="text-sm text-gray-500">
+            Please wait while we log you out...
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default LogoutPage;
