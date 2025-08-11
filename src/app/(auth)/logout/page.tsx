@@ -9,14 +9,23 @@ const LogoutPage = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    const sessionToken = searchParams.get("sessionToken");
-    const force = searchParams.get("force");
-    if (sessionToken && force) {
-      authApiRequest.logout(sessionToken);
-      router.push(`/login?redirectFrom=${pathname}`);
-    }
-  }, [searchParams, router, pathname]);
+ useEffect(() => {
+    const handleLogout = async () => {
+        const sessionToken = searchParams.get("sessionToken");
+        const force = searchParams.get("force");
+        if (sessionToken && force) {
+            try {
+                await authApiRequest.logout(sessionToken);
+            } catch (error) {
+                console.error("Logout failed:", error);
+            } finally {
+                router.push(`/login?redirectFrom=${pathname}`);
+            }
+        }
+    };
+    
+    handleLogout();
+}, [searchParams, router, pathname]);
 
   return (
     <div>

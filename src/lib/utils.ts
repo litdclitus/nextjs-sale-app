@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { toast } from "sonner"
 import { HttpError } from "./http"
+import { decode } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -67,4 +69,8 @@ export function handleApiError<T = Record<string, unknown>>(
     // Handle non-HttpError cases
     toast.error(fallbackMessage, { position: toastPosition });
   }
+}
+
+export const decodeJWT = <Payload>(token: string) => {
+  return jwt.decode(token) as Payload;
 }

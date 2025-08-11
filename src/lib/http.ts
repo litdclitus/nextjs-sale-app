@@ -76,6 +76,7 @@ const request = async <ResponseType> (method: string, url: string, options: Cust
         else if (response.status === AUTHENTICATION_ERROR_CODE) {
             // TODO: Handle authentication error
             if (typeof window !== 'undefined') {
+                // CLIENT SIDE
                 await fetch('/api/logout', {
                     method: 'POST',
                     body: JSON.stringify({ force: true }),
@@ -88,6 +89,7 @@ const request = async <ResponseType> (method: string, url: string, options: Cust
                 authStore.setSessionToken('');
                 window.location.href = '/login';
             }else {
+                // SERVER SIDE
                const sessionToken = (options?.headers as unknown as { Authorization: string })?.Authorization?.split('Bearer ')[1];
                redirect(`/logout?sessionToken=${sessionToken}&force=true`);
             }
