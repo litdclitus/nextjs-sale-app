@@ -1,22 +1,10 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { toast } from "sonner"
+import { HttpError } from "./http"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-// Types for API error handling
-export interface ApiError {
-  status: number;
-  payload: {
-    message?: string;
-    errors?: {
-      field: string;
-      message: string;
-    }[];
-    statusCode?: number;
-  };
 }
 
 export interface FormErrorHandler<T = Record<string, unknown>> {
@@ -51,34 +39,32 @@ export function handleApiError<T = Record<string, unknown>>(
     console.error("API Error:", error);
   }
 
-  // Type guard to ensure error has the expected structure
-  const apiError = error as ApiError;
-  
-  if (!apiError.status || !apiError.payload) {
-    toast.error(fallbackMessage, { position: toastPosition });
-    return;
-  }
-
-  const { status, payload } = apiError;
-
-  // Handle validation errors (422)
-  if (status === 422 && payload.errors && payload.errors.length > 0) {
-    if (useFormErrors && form) {
-      // Set form errors for each validation error
-      for (const errorItem of payload.errors) {
-        form.setError(errorItem.field as keyof T, {
-          message: errorItem.message,
-        });
+  // Check if error is an HttpError instance
+  if (error instanceof HttpError) {
+    // Handle validation errors (422) using HttpError methods
+    if (error.isValidationError()) {
+      const validationErrors = error.getValidationErrors();
+      
+      if (useFormErrors && form) {
+        // Set form errors for each validation error
+        for (const errorItem of validationErrors) {
+          form.setError(errorItem.field as keyof T, {
+            message: errorItem.message,
+          });
+        }
+      } else {
+        // Show toast for each validation error
+        for (const errorItem of validationErrors) {
+          toast.error(errorItem.message, { position: toastPosition });
+        }
       }
     } else {
-      // Show toast for each validation error
-      for (const errorItem of payload.errors) {
-        toast.error(errorItem.message, { position: toastPosition });
-      }
+      // Handle general errors
+      const errorMessage = error.getErrorMessage(fallbackMessage);
+      toast.error(errorMessage, { position: toastPosition });
     }
   } else {
-    // Handle general errors
-    const errorMessage = payload.message || fallbackMessage;
-    toast.error(errorMessage, { position: toastPosition });
+    // Handle non-HttpError cases
+    toast.error(fallbackMessage, { position: toastPosition });
   }
 }
