@@ -3,7 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { LoginBody, LoginBodyType } from "@api/schemaValidations/auth.schema";
+import {
+  LoginBody,
+  LoginBodyType,
+  LoginResType,
+} from "@api/schemaValidations/auth.schema";
 import {
   Form,
   FormControl,
@@ -32,13 +36,16 @@ const LoginForm = () => {
 
   async function onSubmit(values: LoginBodyType) {
     try {
-      const response = await authApiRequest.login(values);
+      const response: LoginResType = await authApiRequest.login(values);
 
       toast.success(response.message, {
         position: "top-left",
       });
 
-      await authApiRequest.auth({ sessionToken: response.data.token });
+      await authApiRequest.auth({
+        sessionToken: response.data.token,
+        expiresAt: response.data.expiresAt,
+      });
 
       setSessionToken(response.data.token);
       router.push("/me");
