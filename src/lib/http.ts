@@ -3,8 +3,9 @@ import { useAuthStore } from "@/stores/auth";
 import { redirect } from "next/navigation";
 
 
-type CustomOptions = RequestInit & {
+type CustomOptions = Omit<RequestInit, 'body'> & {
     baseUrl?: string;
+    body?: unknown;
 }
 
 // Types for validation errors
@@ -48,7 +49,57 @@ class HttpError extends Error {
     }
 }
 
+// Function to check if token needs renewal
+const shouldRenewToken = (): boolean => {
+    if (typeof window === 'undefined') return false; // Skip on server-side
+    
+    const authStore = useAuthStore.getState();
+    const { sessionToken, expiresAt } = authStore;
+    
+    if (!sessionToken || !expiresAt) return false;
+    
+    const now = new Date().getTime();
+    const expires = new Date(expiresAt).getTime();
+    const timeUntilExpiry = expires - now;
+    
+    // Renew if token expires within 5 minutes (300000ms)
+    return timeUntilExpiry <= 300000 && timeUntilExpiry > 0;
+};
+
+// Function to renew session token
+const renewSessionToken = async (): Promise<void> => {
+    try {
+        // Use fetch directly to avoid circular dependency
+        const response = await fetch('/api/slide-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.data?.expiresAt) {
+                // Update the auth store with new expiration time
+                const authStore = useAuthStore.getState();
+                authStore.setSessionToken(authStore.sessionToken, result.data.expiresAt);
+                console.log('✅ Session token renewed successfully, new expiry:', result.data.expiresAt);
+            }
+        } else {
+            console.warn('❌ Failed to renew session token - response not ok:', response.status);
+        }
+    } catch (error) {
+        console.warn('❌ Failed to renew session token:', error);
+    }
+};
+
 const request = async <ResponseType> (method: string, url: string, options: CustomOptions | undefined) => {
+    // Check if we need to renew token before making the request
+    // But skip renewal if we're already calling the slide-session endpoint to prevent circular dependency
+    if (shouldRenewToken() && !url.includes('/slide-session')) {
+        await renewSessionToken();
+    }
+
     const body = options?.body ? JSON.stringify(options.body) : undefined;
     const baseHeaders = {
         'Content-Type': 'application/json',
@@ -61,11 +112,12 @@ const request = async <ResponseType> (method: string, url: string, options: Cust
     const baseUrl = options?.baseUrl === undefined ? envConfig.NEXT_PUBLIC_API_ENDPOINT : options.baseUrl;
     const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
 
+    const { body: _, ...restOptions } = options || {};
     const requestOptions: RequestInit = {
         method,
         headers,
-        body,
-        ...options,
+        body: body as BodyInit | null | undefined,
+        ...restOptions,
     };
 
     const response = await fetch(fullUrl, requestOptions);
@@ -104,8 +156,8 @@ const request = async <ResponseType> (method: string, url: string, options: Cust
 
 const http = {
     get: <ResponseType>(url: string, options?: CustomOptions | undefined) => request<ResponseType>('GET', url, options),
-    post: <ResponseType>(url: string, body: unknown, options?: CustomOptions | undefined) => request<ResponseType>('POST', url, { ...options, body: JSON.stringify(body) }),
-    put: <ResponseType>(url: string, body: unknown, options?: CustomOptions | undefined) => request<ResponseType>('PUT', url, { ...options, body: JSON.stringify(body) }),
+    post: <ResponseType>(url: string, body: unknown, options?: CustomOptions | undefined) => request<ResponseType>('POST', url, { ...options, body }),
+    put: <ResponseType>(url: string, body: unknown, options?: CustomOptions | undefined) => request<ResponseType>('PUT', url, { ...options, body }),
     delete: <ResponseType>(url: string, options?: CustomOptions | undefined) => request<ResponseType>('DELETE', url, options),
 }
 
